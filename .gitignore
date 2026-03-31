@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# YOLO Training
+runs/
+weights/
+*.pt
+*.pth
+!models/yolov8n.pt
+!models/best.pt
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Data (대용량 데이터는 dataset 레포에서 관리)
+data/train/
+data/val/
+data/test/
+*.jpg
+*.png
+*.jpeg
+
+# Logs
+logs/
+*.log
+wandb/
+mlruns/
+
+# Models (학습된 모델은 releases에 업로드)
+*.onnx
+*.tflite
+*.pb
+*.engine
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
