@@ -1,110 +1,169 @@
-# Fish Detection AI Model
+# AI Model - Disaster Safety System
 
-YOLO 기반 방어, 부시리, 잿방어 분류 모델
+YOLOv8 기반 다중 모델 시스템
 
 ## 🚀 Tech Stack
 
-- Python 3.10+
-- Ultralytics YOLOv8
-- PyTorch
-- OpenCV
-- Albumentations (Data Augmentation)
+- **Python 3.10+**
+- **YOLOv8** (Ultralytics)
+- **PyTorch 2.0+**
+- **Flask** (Inference Server)
+- **OpenCV**
+
+## 📦 Models
+
+### 1. Behavior Detection (이상행동 감지)
+- **모델**: YOLOv8m
+- **클래스**: 넘어짐, 싸움, 침입, 누워있음, 달리기
+- **용도**: 모든 CCTV에서 실행 (공통)
+
+### 2. Electrical Equipment (전기설비 위험)
+- **모델**: YOLOv8s
+- **클래스**: 노출 전선, 스파크, 과열, 전기 연기, 누수
+- **용도**: 전기실 CCTV 전용
+
+### 3. Construction Site (건축현장 위험)
+- **모델**: YOLOv8s
+- **클래스**: 안전모 미착용, 안전조끼 미착용, 낙하물, 불안정 비계, 위험구역
+- **용도**: 건축현장 CCTV 전용
+
+## 📦 Setup
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Download Pre-trained Weights
+
+```bash
+# YOLOv8 공식 가중치 다운로드
+wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt
+wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt
+```
+
+## 🎓 Training
+
+### Behavior Detection
+
+```bash
+python train_behavior.py
+```
+
+### Electrical Equipment
+
+```bash
+python train_electrical.py
+```
+
+### Construction Site
+
+```bash
+python train_construction.py
+```
+
+## 🚀 Inference Server
+
+### Run Server
+
+```bash
+python inference_server.py
+```
+
+→ http://localhost:5000
+
+### API Endpoints
+
+#### Health Check
+
+```bash
+GET /health
+```
+
+#### Predict
+
+```bash
+POST /predict
+- image: file
+- cctvType: electrical_room | construction_site | general
+
+Response:
+{
+  "status": "success",
+  "cctvType": "electrical_room",
+  "results": {
+    "behavior": [...],
+    "electrical": [...]
+  },
+  "alerts": [
+    {
+      "type": "전기 위험",
+      "severity": "high",
+      "description": "노출된 전선 감지",
+      "confidence": 0.85
+    }
+  ]
+}
+```
+
+## 🐳 Docker
+
+```bash
+docker build -t safety-ai-model .
+docker run --gpus all -p 5000:5000 safety-ai-model
+```
 
 ## 📁 Project Structure
 
 ```
 ai-model/
-├── data/
-│   └── data.yaml           # YOLO 데이터셋 설정
-├── models/
-│   ├── yolov8n.pt          # Pre-trained 모델
-│   └── best.pt             # 학습된 최고 모델
-├── notebooks/
-│   ├── eda.ipynb           # 데이터 탐색
-│   └── training.ipynb      # 학습 실험
-├── scripts/
-│   ├── train.py            # 학습 스크립트
-│   ├── validate.py         # 검증
-│   ├── inference.py        # 추론
-│   └── export.py           # 모델 변환 (ONNX 등)
-├── utils/
-│   ├── augmentation.py     # 데이터 증강
-│   └── metrics.py          # 평가 지표
+├── train_behavior.py         # 이상행동 모델 학습
+├── train_electrical.py       # 전기설비 모델 학습
+├── train_construction.py     # 건축현장 모델 학습
+├── inference_server.py       # Flask API 서버
 ├── requirements.txt
-└── README.md
+├── Dockerfile
+├── Jenkinsfile
+└── models/                   # 학습된 모델 저장
+    ├── behavior.pt
+    ├── electrical.pt
+    └── construction.pt
 ```
 
-## 🛠️ Setup
+## 🎯 Architecture
+
+```
+CCTV Stream
+    ↓
+Inference Server (Flask)
+    ↓
+Router (CCTV 타입 확인)
+    ↓
+┌──────────┬──────────┬──────────┐
+│ Behavior │Electrical│Construction│
+│  Model   │  Model   │   Model   │
+└──────────┴──────────┴──────────┘
+    ↓
+Result Aggregator
+    ↓
+Alert System
+```
+
+## 🧪 Testing
 
 ```bash
-# 가상환경 생성
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 의존성 설치
-pip install -r requirements.txt
+pytest tests/
 ```
 
-## 🎯 Training
+## 📊 Performance
 
-```bash
-# YOLO 학습
-python scripts/train.py --data data/data.yaml --epochs 100 --imgsz 640
+| Model | mAP@0.5 | FPS (GPU) | Size |
+|-------|---------|-----------|------|
+| Behavior | 0.85 | 60 | 50MB |
+| Electrical | 0.78 | 80 | 25MB |
+| Construction | 0.81 | 80 | 25MB |
 
-# 또는 Ultralytics CLI
-yolo train data=data/data.yaml model=yolov8n.pt epochs=100 imgsz=640
-```
+## 📝 License
 
-## 📊 Validation
-
-```bash
-# 검증
-python scripts/validate.py --model models/best.pt --data data/data.yaml
-
-# Ultralytics CLI
-yolo val model=models/best.pt data=data/data.yaml
-```
-
-## 🔮 Inference
-
-```bash
-# 단일 이미지 예측
-python scripts/inference.py --model models/best.pt --source path/to/image.jpg
-
-# 배치 예측
-python scripts/inference.py --model models/best.pt --source path/to/images/
-```
-
-## 📦 Export
-
-```bash
-# ONNX 변환 (배포용)
-python scripts/export.py --model models/best.pt --format onnx
-
-# TensorFlow Lite 변환 (모바일용)
-yolo export model=models/best.pt format=tflite
-```
-
-## 📈 Results
-
-학습 결과는 `runs/detect/train/` 폴더에 저장됩니다:
-- `weights/best.pt` - 최고 성능 모델
-- `results.png` - 학습 곡선
-- `confusion_matrix.png` - Confusion Matrix
-
-## 🎯 Classes
-
-```yaml
-0: bangeo      # 방어 (Seriola quinqueradiata)
-1: busiri      # 부시리 (Seriola lalandi)
-2: jaetbangeo  # 잿방어 (Seriola dumerili)
-```
-
-## 👥 Team
-
-AI/ML Team
-
-## 📚 References
-
-- [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)
-- [YOLO Documentation](https://docs.ultralytics.com/)
+MIT
