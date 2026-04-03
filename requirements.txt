@@ -1,14 +1,21 @@
+# Flask 웹 프레임워크
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# YOLO (YOLOv8)
 ultralytics==8.1.0
-torch>=2.0.0
-torchvision>=0.15.0
-opencv-python>=4.8.0
-numpy>=1.24.0
-Pillow>=10.0.0
-pyyaml>=6.0
-tqdm>=4.65.0
-matplotlib>=3.7.0
-seaborn>=0.12.0
-pandas>=2.0.0
-scipy>=1.10.0
-flask>=3.0.0
-flask-cors>=4.0.0
+
+# 이미지 처리
+opencv-python-headless==4.9.0.80
+Pillow==10.2.0
+
+# 데이터 처리
+numpy==1.26.3
+pandas==2.2.0
+
+# 머신러닝 (선택 - LightGBM for weight prediction)
+lightgbm==4.3.0
+scikit-learn==1.4.0
+
+# 유틸리티
+python-dotenv==1.0.1
