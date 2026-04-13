@@ -2,45 +2,58 @@
 __pycache__/
 *.py[cod]
 *$py.class
-venv/
+*.so
+.Python
 env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# YOLO Training
-runs/
-weights/
-*.pt
-*.pth
-!models/yolov8n.pt
-!models/best.pt
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# Data (대용량 데이터는 dataset 레포에서 관리)
-data/train/
-data/val/
-data/test/
+# Dataset (대용량 파일 제외)
+data/
+dataset/
 *.jpg
-*.png
 *.jpeg
+*.png
+*.mp4
+*.avi
+*.mov
+*.zip
+*.tar
+*.gz
 
-# Logs
-logs/
-*.log
-wandb/
-mlruns/
-
-# Models (학습된 모델은 releases에 업로드)
-*.onnx
-*.tflite
-*.pb
-*.engine
+# Model weights
+*.pth
+*.pt
+*.h5
+*.weights
+models/*.pth
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+logs/
