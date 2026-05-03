@@ -31,8 +31,22 @@ app.add_middleware(
 SERVICE_TYPE = os.getenv("SERVICE_TYPE", "eye")  # skin | eye
 MODEL_NAME = os.getenv("MODEL_NAME", "yolov5")
 MODEL_VERSION = os.getenv("MODEL_VERSION", "eye_model_final")
-MODEL_PATH = os.getenv("MODEL_PATH", os.path.join("models", MODEL_VERSION, "best.pt"))
-CONF_THRESHOLD = float(os.getenv("CONF_THRESHOLD", "0.25")) # 신뢰도 임계값 0.25 이상이면 검출로 간주
+
+
+def _default_model_path() -> str:
+    model_dir = os.path.join("models", MODEL_VERSION)
+    candidates = [
+        os.path.join(model_dir, "best.pt"),
+        os.path.join(model_dir, "weights", "best.pt"),
+    ]
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    return candidates[0]
+
+
+MODEL_PATH = os.getenv("MODEL_PATH", _default_model_path())
+CONF_THRESHOLD = float(os.getenv("CONF_THRESHOLD", "0.1")) # 신뢰도 임계값 0.1 이상이면 검출로 간주
 IOU_THRESHOLD = float(os.getenv("IOU_THRESHOLD", "0.7")) # 중복 탐지 임계값 0.7 이상이면 중복으로 간주
 MAX_DETECTIONS = int(os.getenv("MAX_DETECTIONS", "50")) # 최대 검출 수
 IMAGE_SIZE = int(os.getenv("IMAGE_SIZE", "1280")) # 입력 이미지 크기
@@ -254,14 +268,18 @@ async def predict(image: UploadFile = File(...)):
         detections.sort(key=lambda d: d["score"], reverse=True)
 
         predicted_label = detections[0]["label"] if detections else "normal"
-        predicted_score = float(detections[0]["score"]) if detections else 0.0
+        predicted_score = float(detections[0]["score"]) if detections else 1.0  # 탐지 없음 = 정상(1.0)
 
         top5 = []
-        for det in detections[:5]:
-            top5.append({
-                "label": det["label"],
-                "score": round(float(det["score"]), 4),
-            })
+        if detections:
+            for det in detections[:5]:
+                top5.append({
+                    "label": det["label"],
+                    "score": round(float(det["score"]), 4),
+                })
+        else:
+            # 탐지 없음: normal을 top5에 추가하여 백엔드 scoreMap이 정상 매핑되도록 함
+            top5.append({"label": predicted_label, "score": round(predicted_score, 4)})
 
         t4 = time.perf_counter()
         
